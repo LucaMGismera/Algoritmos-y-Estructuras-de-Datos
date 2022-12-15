@@ -1,0 +1,141 @@
+package aed.tries;
+
+import java.util.Arrays;
+import java.util.Iterator;
+
+import es.upm.aedlib.Pair;
+import es.upm.aedlib.Position;
+import es.upm.aedlib.tree.GeneralTree;
+import es.upm.aedlib.tree.LinkedGeneralTree;
+import es.upm.aedlib.positionlist.PositionList;
+import es.upm.aedlib.positionlist.NodePositionList;
+
+public class DictImpl implements Dictionary {
+	// A boolean because we need to know if a word ends in a node or not
+	GeneralTree<Pair<Character, Boolean>> tree;
+
+	public DictImpl() {
+		tree = new LinkedGeneralTree<>();
+		tree.addRoot(new Pair<Character, Boolean>(null, false));
+	}
+
+	public void add(String word) {
+		if (word == null || word.equals("")) {
+			throw new IllegalArgumentException("La palabra no puede ser vacía o null");
+		}
+
+		if (isIncluded(word)) {
+			return;
+		}
+		Position<Pair<Character, Boolean>> anterior = tree.root();
+		int i = 0;
+		for (; i < word.length(); i++) {
+			anterior = addChildAlphabetically(new Pair<Character, Boolean>(word.charAt(i), false), anterior);
+		}
+		// Aniadimos la palabra y tenemos que ponerla como true;
+		findPos(word).element().setRight(true);
+	}
+
+	public void delete(String word) {
+		if (word == null || word.equals("")) {
+			throw new IllegalArgumentException("La palabra no puede ser vacía o null");
+		}
+		if (isIncluded(word)) {
+			findPos(word).element().setRight(false);
+		}
+	}
+
+	public boolean isIncluded(String word) {
+		if (word == null || word.equals("")) {
+			throw new IllegalArgumentException("La palabra no puede ser vacía o null");
+		}
+
+		return findPos(word) != null ? findPos(word).element().getRight() : false;
+
+	}
+
+	public PositionList<String> wordsBeginningWithPrefix(String prefix) {
+		if (prefix == null)
+			throw new IllegalArgumentException("La palabra no puede ser null");
+
+		PositionList<String> result = new NodePositionList<String>();
+		Position<Pair<Character, Boolean>> pos = findPos(prefix);
+
+		if (pos == null || tree.isEmpty()) {
+			return result;
+		}
+
+		String cadenaInicial = new String(prefix);
+		if (!cadenaInicial.equals("")) {
+			cadenaInicial = cadenaInicial.substring(0, cadenaInicial.length() - 1);
+		}
+
+		result = wordsBeginningAux(tree, pos, cadenaInicial, result);
+
+		return result;
+	}
+
+	private static PositionList<String> wordsBeginningAux(GeneralTree<Pair<Character, Boolean>> tree,
+			Position<Pair<Character, Boolean>> v, String cadena, PositionList<String> result) {
+		if (!v.equals(tree.root())) {
+			cadena = cadena + v.element().getLeft();
+		}
+
+		if (v.element().getRight()) {
+			result.addLast(cadena);
+		}
+
+		for (Position<Pair<Character, Boolean>> w : tree.children(v)) {
+			result = wordsBeginningAux(tree, w, cadena, result);
+		}
+
+		return result;
+	}
+
+	// Métodos auxiliares
+
+	private Position<Pair<Character, Boolean>> findPos(String prefix) {
+
+		// Usamos searchChildLabelledBy siguiendo el orden del prefix.
+		Position<Pair<Character, Boolean>> res = tree.root();
+		for (int i = 0; i < prefix.length() && res != null; i++) {
+			res = searchChildLabelledBy(prefix.charAt(i), res);
+		}
+
+		return res;
+	}
+
+	private Position<Pair<Character, Boolean>> searchChildLabelledBy(char ch, Position<Pair<Character, Boolean>> pos) {
+		// Si la posicion no es valida evitamos errores.
+		if (pos == null) {
+			return null;
+		}
+		// Buscamos entre los hijos un pos con el ch.
+		for (Position<Pair<Character, Boolean>> elem : tree.children(pos)) {
+			if (ch == elem.element().getLeft())
+				return elem;
+		}
+		// If no tiene hijos devolvemos null;
+		return null;
+	}
+
+	private Position<Pair<Character, Boolean>> addChildAlphabetically(Pair<Character, Boolean> pair,
+			Position<Pair<Character, Boolean>> pos) {
+
+		// Buscamos entre los hijos y colocamos antes del inmediatamente mayor
+		for (Position<Pair<Character, Boolean>> elem : tree.children(pos)) {
+			// Si encontramos justo el elemento a aniadir, devuelve el ya incluido y no
+			// aniade nada
+			if (elem.element().getLeft().equals(pair.getLeft())) {
+				return elem;
+			}
+			// Si el previo es mayor, introducimos antes.
+			else if (elem.element().getLeft().compareTo(pair.getLeft()) > 0) {
+				return tree.insertSiblingBefore(elem, pair);
+			}
+		}
+		// Recoge caso hoja y caso hijo ultimo
+		return tree.addChildLast(pos, pair);
+	}
+
+}
