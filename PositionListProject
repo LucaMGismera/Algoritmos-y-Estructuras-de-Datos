@@ -1,0 +1,77 @@
+package aed.individual5;
+
+import java.util.Iterator;
+import es.upm.aedlib.Position;
+import es.upm.aedlib.positionlist.*;
+import es.upm.aedlib.map.*;
+
+public class Utils {
+
+	public static <E> PositionList<E> deleteRepeated(PositionList<E> l) {
+		PositionList<E> res = new NodePositionList<E>();
+		Position<E> cursor = l.first();
+		while (cursor != null) {
+			if (!elemEncontrado(res, cursor.element())) { // Elemento incluido en la otra lista.
+				res.addLast(cursor.element());
+			}
+			cursor = l.next(cursor);
+		}
+		return res;
+	}
+
+	public static <E> PositionList<E> compactar(Iterable<E> lista) {
+		if (lista == null)
+			throw new IllegalArgumentException();
+
+		PositionList<E> res = new NodePositionList<E>();
+		Iterator<E> it = lista.iterator();
+		if (it.hasNext()) { // Nos aseguramos de que haya minimo un elemento
+			E elem = it.next();
+			res.addLast(elem);
+			E lastElem = elem;
+			while (it.hasNext()) { // Vamos comprobando si es distinto al anterior.
+				elem = it.next();
+				if (!eqNull(lastElem, elem)) { // Aniadimos y actualizamos si es distinto.
+					res.addLast(elem);
+					lastElem = elem;
+				}
+			}
+		}
+		return res;
+	}
+
+	public static Map<String, Integer> maxTemperatures(TempData[] tempData) {
+		// Para optimizar, creamos un map con tamanio maximo la longitud de tempdata.
+		Map<String, Integer> res = new HashTableMap<String, Integer>(tempData.length);
+		for (int i = 0; i < tempData.length; i++) {
+			
+			//Si no existe registro de la ciudad lo incluimos.
+			if (!res.containsKey(tempData[i].getLocation())) {
+				res.put(tempData[i].getLocation(), tempData[i].getTemperature());
+			} else {
+				//En caso de que exista y el registro sea menor lo cambiamos.
+				if (res.get(tempData[i].getLocation()) < tempData[i].getTemperature()) {
+					res.put(tempData[i].getLocation(), tempData[i].getTemperature());
+				}
+			}
+		}
+		return res;
+	}
+
+	public static boolean eqNull(Object o1, Object o2) {
+		return o1 == o2 || (o1 != null && o1.equals(o2));
+	}
+
+	// Metodo que devulve true si encuentra un E elemento en una PositionList.
+	public static <E> boolean elemEncontrado(PositionList<E> l, E elem) {
+		Position<E> cursor = l.first();
+		while (cursor != null) {
+			if (eqNull(elem, cursor.element())) {
+				return true;
+			}
+			cursor = l.next(cursor);
+		}
+		return false;
+	}
+
+}
