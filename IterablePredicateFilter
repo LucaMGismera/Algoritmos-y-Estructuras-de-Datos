@@ -1,0 +1,28 @@
+package aed.filter;
+
+import java.util.Iterator;
+import java.util.function.Predicate;
+import es.upm.aedlib.positionlist.NodePositionList;
+import es.upm.aedlib.positionlist.PositionList;
+
+
+public class Utils {
+
+	
+	//Filtro sencillo con un predicado de un Iterable.
+	public static <E> Iterable<E> filter(Iterable<E> d, Predicate<E> pred) {
+		
+		//Si el iterator es null devuelve la excepcion automaticamente.
+		Iterator<E> it = d.iterator();
+		//Creamos un lista para devolver
+		PositionList<E> resultado = new NodePositionList<E>();
+		//Si el iterator puede seguir recorriendo aniadimos los elementos.
+		while (it.hasNext()) {
+			E elem = it.next();
+			if (elem != null &&pred.test(elem)) {
+					resultado.addLast(elem);
+			}
+		}
+		return resultado;
+	}
+}
