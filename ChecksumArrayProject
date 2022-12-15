@@ -1,0 +1,66 @@
+package aed.individual1;
+import java.util.ArrayList;
+import java.util.List;
+
+//Luca Malumbres Gismera
+
+public class ArrayCheckSumUtils {
+
+	// a no es null, podria tener tamaÃ±o 0, n>0
+	public static int[] arrayCheckSum(int[] arr, int n) {
+		
+		//Array vacío
+		if (arr.length == 0) {
+			int[] vacio = new int[0];
+			return vacio;
+		}
+		
+		//Solo añadimos al final un número.
+		if (n >= arr.length) {
+			n = arr.length;
+			int sum = 0;
+			int[] resUnico = new int[arr.length + 1];
+
+			for (int i = 0; i < n; i++) {
+				resUnico[i] = arr[i];
+				sum += arr[i];
+			}
+			resUnico[resUnico.length - 1] = sum;
+			return resUnico;
+		}
+
+		
+		List<Integer> lista = new ArrayList<Integer>();
+		for(int i = 0; i<arr.length; i++) {
+			lista.add(arr[i]);
+		}
+		
+		int listaPos = 0;
+		int sum = 0;
+		int Blq = 0;
+		
+		//Vamos introduciendo los números en la lista actualizando los indices.
+		for(int arrPos = 0; arrPos<arr.length; arrPos++) {
+			sum += arr[arrPos];
+			listaPos++;
+			Blq++;
+			//Si completamos un bloque entonces añadimos el checksum.
+			if (Blq==n) {
+				lista.add(listaPos, sum);
+				listaPos++;
+				sum = 0;
+				Blq = 0;
+			}
+		}
+		//Si queda algún bloque incompleto por introducir lo añadimos.
+		if (sum!=0)
+			lista.add(listaPos, sum);
+		
+		int[] res = new int[lista.size()];
+		for(int i=0; i<res.length; i++) {
+			res[i] = lista.remove(0);
+		}
+		
+		return res;
+	}
+}
